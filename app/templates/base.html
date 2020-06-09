@@ -15,15 +15,23 @@
     <body>
 
             <nav class="navbar fixed-top navbar-dark bg-dark">
-            <a class="navbar-brand" href="/">My First App</a>
+                <a class="navbar-brand" href="/">My First App</a>
+
+                {% if 'user' in session %}
+                <p class ="mb-0">
+                    <a class = "btn btn-secondary" href="/logout">Logout</a><br>
+                </p>
+                {% else %} 
+                <p class ="mb-0">
+                    <a class="btn btn-success" href="/register" role="button">Register</a>
+                    <a class="btn btn-primary" href="/login" role="button">Log In</a>
+                </p>
+                {% endif %}
             </nav>
 
 
             <div class="jumbotron">
-                <p>
-                <a class="btn btn-success" href="/register" role="button">Register</a>
-                <a class="btn btn-primary" href="/login" role="button">Log In</a>
-                </p>
+                
 
                 {% block content %} {% endblock %}
 
