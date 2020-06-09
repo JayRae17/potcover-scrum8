@@ -29,7 +29,7 @@ def login():
         if check_password_hash(user.password, password):
             session['user'] = user.email
             flash('Successfully Logged in', category='success')
-            return redirect(url_for('index'))
+            return redirect(url_for('events'))
 
     return render_template('login.html', title = 'Login', form = form)
 
@@ -49,7 +49,7 @@ def register():
         db.session.commit()
 
         flash('Successfully Registered', category='success')
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
 
     return render_template('register.html', title = "Register", form = form)
 
@@ -58,7 +58,7 @@ def register():
 def events():
     events = Event.query.all()
 
-    return render_template('events.html', title="Events", user=session['user'], events=events)
+    return render_template('events.html', title="Current Events", user=session['user'], events=events)
 
 @app.route('/events/create',methods=['GET', 'POST'])
 def createAnEvent():
@@ -97,7 +97,7 @@ def createAnEvent():
 
 @app.route('/logout', methods=['GET'])
 def logout():
-    if user in session:
+    if 'user' in session:
         session.pop('user', None)
     flash("You have logged out successfully", category='success')
     return redirect(url_for('login'))
@@ -180,8 +180,7 @@ def authorized_user(f):
 @admin_required
 @token_required
 def get_users(current_user):
-
-    users = User.query.all()
+    users = User.query.filter(User.email != current_user.email).all()  #gets all but admin
     output = []
 
     for user in users:
@@ -199,7 +198,7 @@ def get_users(current_user):
 
 @app.route('/user/<user_id>', methods=['GET'])
 @token_required
-def get_one_user(user_id):
+def get_one_user(current_user,user_id):
     user = User.query.filter_by(id=user_id).first()
 
     if not user:

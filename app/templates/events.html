@@ -4,29 +4,31 @@
 
 {% include "flash.html" %}
 <a href="/logout">[Logout]</a><br>
-Hi, {{user}}
+Welcome, {{user}}
 
-<h3>{{title}}</h3>
-{% if events %}
-    <ul>
-        {% for e in events %}
-            <li>
-                Title: {{e.title}} <br>
-                Name: {{e.name}} <br>
-                Category: {{e.category}} <br>
-                Description: {{e.description}} <br>
-                Start Date: {{e.start_date}} <br>
-                End Date: {{e.end_date}} <br>
-                Cost: {{e.cost}} <br>
-                Venue: {{e.venue}} <br>
-                Flyer: {{e.flyer}} 
-            </li>
-        {% endfor %}         
-    </ul>
-{% else %}
+<div class = "text-center">
+    <h3>{{title}}</h3>
+    {% if events %}
+        <div class = "row mt-4">
+            {% for e in events %}
+                <div class = "col-4">
+                   <b>{{e.title}} </b> <br>
+                    Name: {{e.name}} <br>
+                    Category: {{e.category}} <br>
+                    Description: {{e.description}} <br>
+                    Start Date: {{e.start_date}} <br>
+                    End Date: {{e.end_date}} <br>
+                    Cost: {{e.cost}} <br>
+                    Venue: {{e.venue}} <br>
+                    Flyer: {{e.flyer}} 
+                </div>
+            {% endfor %}         
+        </div>
+    {% else %}
 
-    There are no events.
+        There are no events.
 
-{% endif %}
+    {% endif %}
+</div>
 
 {% endblock %}
