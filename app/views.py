@@ -1,11 +1,14 @@
+import os
 from flask import render_template, flash, url_for, session, redirect, request, make_response, jsonify
 from app import app, db
 from .models import User, Event
-from .forms import RegistrationForm, LoginForm
+from .forms import RegistrationForm, LoginForm, EventForm
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-import jwt, datetime
+import jwt, datetime, secrets
 from functools import wraps
+
+token_set = set()
 
 @app.route('/',methods=['GET'])
 def index():
@@ -13,7 +16,7 @@ def index():
 
 
 @app.route('/login',methods=['GET','POST'])
-def login():
+def login(): #not connected to authlogin
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -35,15 +38,16 @@ def login():
 
 
 @app.route('/register', methods=['POST', 'GET'])
-def register():
+def register(): #not connected to createuser
     form = RegistrationForm()
     if form.validate_on_submit():
         firstname =  form.firstname.data
         lastname =  form.lastname.data
+        username =  form.username.data
         email =  form.email.data
         password =  form.password.data
 
-        user = User(firstname = firstname, lastname =  lastname, email=email, password=generate_password_hash(password, method='sha256'))
+        user = User(firstname = firstname, lastname =  lastname, username =  username, email=email, password=generate_password_hash(password, method='sha256'))
 
         db.session.add(user)
         db.session.commit()
@@ -58,7 +62,7 @@ def register():
 def events():
     events = Event.query.all()
 
-    return render_template('events.html', title="Current Events", user=session['user'], events=events)
+    return render_template('events.html', title="Current Events", events=events)
 
 @app.route('/events/create',methods=['GET', 'POST'])
 def createAnEvent():
@@ -73,13 +77,10 @@ def createAnEvent():
         end_date = form.end_date.data
         cost = form.cost.data
         venue = form.venue.data   
-        flyer = form.flyer.data
+        pic = form.flyer.data
+        print('herrrrreeeee'+ str(pic))
 
-
-        # filename = secure_filename(flyer.filename)
-        # flyer.save(os.path.join(
-        #     app.config['UPLOAD_FOLDER'], filename
-        # ))
+        photo = save_picture(pic)
 
         print(session['user'])
         user = User.query.filter_by(email=session['user']).first()
@@ -87,7 +88,7 @@ def createAnEvent():
         creator = user.id
         date_created = datetime.now()
 
-        event = Event(name=name, title=title, description=description, category=category, start_date=start_date, end_date=end_date, cost=cost, venue=venue, flyer="filename", creator=creator, date_created=date_created)
+        event = Event(name=name, title=title, description=description, category=category, start_date=start_date, end_date=end_date, cost=cost, venue=venue, flyer=photo, creator=creator, date_created=date_created)
         db.session.add(event)
         db.session.commit()
 
@@ -95,8 +96,22 @@ def createAnEvent():
         return redirect(url_for('index'))
     return render_template('createEvents.html', title = 'Create An Event', form = form)
 
+
+def save_picture(form_picture):
+    random_hex= secrets.token_hex(8)
+    f_name,f_ext= os.path.splitext(form_picture.filename)
+    picture_fn= random_hex+ f_ext
+    picture_path= os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], picture_fn)
+    output_size=(650,760)
+    i=Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+    return picture_fn
+
+
+
 @app.route('/logout', methods=['GET'])
-def logout():
+def logout(): #not connected to authlogout
     if 'user' in session:
         session.pop('user', None)
     flash("You have logged out successfully", category='success')
@@ -118,8 +133,13 @@ def token_required(f):
         token = None
         if 'x-access-token' in request.headers: 
             token = request.headers['x-access-token']
+
+        if token in token_set: #checks if token in blacklist
+            return jsonify({'Message':'Please Login Again'}), 200
+
         if not token:
             return jsonify({'Message':'Missing Token'}), 401
+
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
             current_user = User.query.filter_by(email = data['email']).first()
@@ -277,7 +297,7 @@ def updateUser(current_user,user_id):
 
 #============ Events ####################
 
-# Get all events
+# Get all events for all users
 @app.route('/events', methods = ['GET'])
 def getEvents():
     events = Event.query.all()
@@ -295,7 +315,8 @@ def getEvents():
         event_data["venue"] = event.venue
         event_data["flyer"] = event.flyer
         event_data["visibility"] = event.visibility
-        event_list.append(event_data)
+        if event.visibility == True:
+            event_list.append(event_data)
     return jsonify({'Events':event_list})
 
 # Retrieve a particular event details
@@ -393,3 +414,18 @@ def authlogin():
         return jsonify({'token':token.decode('UTF-8')})
 
     return make_response('User verification failed3', 401,{'WWW-Authenticate': 'Basic realm = "Login Required!"'})
+
+
+@app.route('/authlogout')
+@token_required
+def authlogout(current_user): 
+    token = None
+    if 'x-access-token' in request.headers: 
+        token = request.headers['x-access-token']
+    if not token:
+        return jsonify({'Message':'Missing Token'}), 401
+
+    token_set.add(token) #blacklist
+    return jsonify({'Message':'Successfully Logged Out'}), 200
+
+

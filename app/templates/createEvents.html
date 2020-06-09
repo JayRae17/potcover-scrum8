@@ -6,7 +6,7 @@
 {% from "_formhelpers.html" import render_field %}
 
 <h3>{{title}}</h3>
-<form class="form" method="post" action="/events/create">
+<form class="form" method="post" action="/events/create" enctype="multipart/form-data">
     {{form.hidden_tag()}}
     <dl>
         {{ render_field(form.title) }}

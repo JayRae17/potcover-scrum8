@@ -8,6 +8,9 @@
 
 <div class = "text-center mt-4">
     <h3>{{title}}</h3>
+    <p class ="mt-3">
+        <a class = "btn btn-secondary" href="/events/create">New Event</a><br>
+    </p>
     {% if events %}
         <div class = "row mt-5">
             {% for e in events %}
@@ -16,8 +19,8 @@
                     Name: {{e.name}} <br>
                     Category: {{e.category}} <br>
                     Description: {{e.description}} <br>
-                    Start Date: {{e.start_date}} <br>
-                    End Date: {{e.end_date}} <br>
+                    Start Date: {{e.start_dt}} <br>
+                    End Date: {{e.end_dt}} <br>
                     Cost: {{e.cost}} <br>
                     Venue: {{e.venue}} <br>
                     Flyer: {{e.flyer}} 
