@@ -1,0 +1,33 @@
+pip install virtualenv
+virtualenv myncbapp
+cd myncbapp
+Scripts\activate
+
+pip install
+flask
+flask-mysqldb
+flask-sqlalchemy
+flask-wtf
+email_validator
+
+create files and folders
+
+
+in db
+mysql -u root -p
+create database myncb;
+
+- change type
+alter table event change eventDate event_date datetime;
+- add user
+alter table user add admin tinyint(1);
+
+insert into user table
+
+
+to use sql Scripts
+\. <path of script>
+
+in models have a to json method that converts each object to json 
+so that you can call the function on it in the api
+
