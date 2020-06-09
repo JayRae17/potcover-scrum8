@@ -1,24 +1,32 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% include "flash.html"%}
-    <a href="/logout">[Log Out]</a><br />
-    <i>
-        Hi, {{user}}
-    </i>
-    
 
-    <h3>{{title}}</h3>
+{% include "flash.html" %}
+<a href="/logout">[Logout]</a><br>
+Hi, {{user}}
 
-    {% if events %}
-        <ul>
+<h3>{{title}}</h3>
+{% if events %}
+    <ul>
         {% for e in events %}
-            <li>{{e.title}}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        There are no events!
+            <li>
+                Title: {{e.title}} <br>
+                Name: {{e.name}} <br>
+                Category: {{e.category}} <br>
+                Description: {{e.description}} <br>
+                Start Date: {{e.start_date}} <br>
+                End Date: {{e.end_date}} <br>
+                Cost: {{e.cost}} <br>
+                Venue: {{e.venue}} <br>
+                Flyer: {{e.flyer}} 
+            </li>
+        {% endfor %}         
+    </ul>
+{% else %}
 
-    {% endif %}
+    There are no events.
+
+{% endif %}
 
 {% endblock %}

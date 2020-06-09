@@ -2,57 +2,105 @@ from flask import render_template, flash, url_for, session, redirect, request, m
 from app import app, db
 from .models import User, Event
 from .forms import RegistrationForm, LoginForm
+from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt, datetime
 from functools import wraps
 
-@app.route('/',methods =['GET'] )
+@app.route('/',methods=['GET'])
 def index():
-    return render_template("index.html", title = "My Main Page" )
+    return render_template("index.html", title="My Main Page")
 
-@app.route('/register', methods = ['POST', 'GET'])
-def register():
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        firstname = form.firstname.data
-        lastname = form.lastname.data
-        username = form.username.data
-        email = form.email.data
-        password = form.password.data
 
-        user = User(firstname = firstname, lastname = lastname, email = email, password = generate_password_hash(password,'sha256'))
-        db.session.add(user)
-        db.session.commit()
-        flash('Successfully Registered', category = 'success')
-        return redirect(url_for('index'))
-    
-    return render_template('register.html', title="Register", form = form)
-
-@app.route('/login', methods = ['GET','POST'])
+@app.route('/login',methods=['GET','POST'])
 def login():
     form = LoginForm()
+
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
+
         user = User.query.filter_by(email=email).first()
 
         if not user:
-            flask('Credentials incorrect', category = 'danger')
-            return redirect(url_for('login'))
-        if check_password_hash(user.password,password):
-            session['user'] = user.firstname
-            flash('Successfully logged in', category='success')
-            return redirect(url_for('events'))
+            flash('Credentials incorrect', category='danger')
+            return redirect (url_for('login'))
+
+        if check_password_hash(user.password, password):
+            session['user'] = user.email
+            flash('Successfully Logged in', category='success')
+            return redirect(url_for('index'))
+
     return render_template('login.html', title = 'Login', form = form)
-    
 
-@app.route('/logout',methods=['GET'])
+
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        firstname =  form.firstname.data
+        lastname =  form.lastname.data
+        email =  form.email.data
+        password =  form.password.data
+
+        user = User(firstname = firstname, lastname =  lastname, email=email, password=generate_password_hash(password, method='sha256'))
+
+        db.session.add(user)
+        db.session.commit()
+
+        flash('Successfully Registered', category='success')
+        return redirect(url_for('index'))
+
+    return render_template('register.html', title = "Register", form = form)
+
+
+@app.route('/events', methods=['GET'])
+def events():
+    events = Event.query.all()
+
+    return render_template('events.html', title="Events", user=session['user'], events=events)
+
+@app.route('/events/create',methods=['GET', 'POST'])
+def createAnEvent():
+    form = EventForm()
+
+    if form.validate_on_submit():
+        title = form.title.data
+        name = form.name.data
+        description = form.description.data
+        category = form.category.data
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+        cost = form.cost.data
+        venue = form.venue.data   
+        flyer = form.flyer.data
+
+
+        # filename = secure_filename(flyer.filename)
+        # flyer.save(os.path.join(
+        #     app.config['UPLOAD_FOLDER'], filename
+        # ))
+
+        print(session['user'])
+        user = User.query.filter_by(email=session['user']).first()
+        print("-------------------------->" + str(user))
+        creator = user.id
+        date_created = datetime.now()
+
+        event = Event(name=name, title=title, description=description, category=category, start_date=start_date, end_date=end_date, cost=cost, venue=venue, flyer="filename", creator=creator, date_created=date_created)
+        db.session.add(event)
+        db.session.commit()
+
+        flash('Successfully created event', category='success')
+        return redirect(url_for('index'))
+    return render_template('createEvents.html', title = 'Create An Event', form = form)
+
+@app.route('/logout', methods=['GET'])
 def logout():
-    if 'user' in session:
+    if user in session:
         session.pop('user', None)
-    flash('You have logged successfully', category = 'success')
+    flash("You have logged out successfully", category='success')
     return redirect(url_for('login'))
-
 
 #=================== REST API =======================#
 
