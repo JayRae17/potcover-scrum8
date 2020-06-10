@@ -13,22 +13,39 @@
     </head>
     
     <body>
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+            <ul class="navbar-nav col-10">
+              <li class="nav-item active">
+                <a class="navbar-brand mr-5" href="/">Events Management</a>
+              </li>
+              <li class="nav-item mr-5">
+                <a class="nav-link" href="/events">All Events</a>
+              </li>
+            {% if 'user' in session %}
+                <li class="nav-item mr-5">
+                    <a class="nav-link" href="{{ url_for('userevents', id = session.get('user_id')) }}">My Events</a>
+                </li>          
+            {% endif %}
+            </ul>
 
-            <nav class="navbar fixed-top navbar-dark bg-dark">
-                <a class="navbar-brand" href="/">My First App</a>
-
-                {% if 'user' in session %}
-                <p class ="mb-0">
+            {% if 'user' in session %}
+            <ul class="navbar-nav"></ul>
+                <li class ="mb-0 ml-5">
                     <a class = "btn btn-secondary" href="/logout">Logout</a><br>
-                </p>
-                {% else %} 
-                <p class ="mb-0">
-                    <a class="btn btn-success" href="/register" role="button">Register</a>
-                    <a class="btn btn-primary" href="/login" role="button">Log In</a>
-                </p>
-                {% endif %}
-            </nav>
+                </li>
+            </ul>
+            {% else %}
+            <ul class="navbar-nav">
+                <li class ="mb-0">
+                    <a class="btn btn-light mr-2" href="/register" role="button">Register</a>
+                    <a class="btn btn-secondary" href="/login" role="button">Log In</a>
+                </li>
+            </ul>
 
+            {% endif %}
+            
+          </nav>
+            
 
             <div class="jumbotron">
                 
@@ -41,7 +58,7 @@
     
             <footer class="footer">
                 <div class="container text-center">
-                    <p>&copy; My First App </p>
+                    <p>&copy; Pot Cover </p>
                 </div>
             </footer>
     

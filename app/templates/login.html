@@ -4,15 +4,16 @@
 
 {% include "flash.html" %}
 {% from "_formhelpers.html" import render_field %}
-
-<h3>{{title}}</h3>
-<form class="form" method="post" action="/login">
-    {{form.hidden_tag()}}
-    <dl>
-        {{ render_field(form.email) }}
-        {{ render_field(form.password) }}
-    </dl>
-    <p><input type="submit" value="Login"></p>
-</form>
+<h3 class = "mb-3">{{title}}</h3>
+<div class = "text-center">
+    <form class="card w-25 px-5 py-3" method="post" action="/login">
+        {{form.hidden_tag()}}
+        <dl>
+            {{ render_field(form.email) }}
+            {{ render_field(form.password) }}
+        </dl>
+        <p><input class = "btn btn-info" type="submit" value="Login"></p>
+    </form>
+</div>
 
 {% endblock %}

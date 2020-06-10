@@ -15,6 +15,13 @@ def index():
     return render_template("index.html", title="My Main Page")
 
 
+@app.route('/events', methods=['GET']) #everyone can see
+def events():
+    events = Event.query.all()
+
+    return render_template('events.html', title="Current Events", events=events)
+
+
 @app.route('/login',methods=['GET','POST'])
 def login(): #not connected to authlogin
     form = LoginForm()
@@ -31,6 +38,7 @@ def login(): #not connected to authlogin
 
         if check_password_hash(user.password, password):
             session['user'] = user.email
+            session['user_id'] = user.id
             flash('Successfully Logged in', category='success')
             return redirect(url_for('events'))
 
@@ -58,11 +66,6 @@ def register(): #not connected to createuser
     return render_template('register.html', title = "Register", form = form)
 
 
-@app.route('/events', methods=['GET'])
-def events():
-    events = Event.query.all()
-
-    return render_template('events.html', title="Current Events", events=events)
 
 @app.route('/events/create',methods=['GET', 'POST'])
 def createAnEvent():
@@ -73,40 +76,50 @@ def createAnEvent():
         name = form.name.data
         description = form.description.data
         category = form.category.data
-        start_date = form.start_date.data
-        end_date = form.end_date.data
+        start_dt = form.start_date.data
+        end_dt = form.end_date.data
         cost = form.cost.data
         venue = form.venue.data   
-        pic = form.flyer.data
-        print('herrrrreeeee'+ str(pic))
-
-        photo = save_picture(pic)
+        flyer = request.files['flyer']
+       
+        filename = secure_filename(flyer.filename)
+        flyer.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))   #works
 
         print(session['user'])
         user = User.query.filter_by(email=session['user']).first()
         print("-------------------------->" + str(user))
         creator = user.id
-        date_created = datetime.now()
+        date_created = datetime.datetime.now()
 
-        event = Event(name=name, title=title, description=description, category=category, start_date=start_date, end_date=end_date, cost=cost, venue=venue, flyer=photo, creator=creator, date_created=date_created)
+        event = Event(name=name, title=title, description=description, category=category, start_dt=start_dt, end_dt=end_dt, cost=cost, venue=venue, flyer=filename, creator=creator, date_created=date_created)
         db.session.add(event)
         db.session.commit()
 
         flash('Successfully created event', category='success')
-        return redirect(url_for('index'))
+        return redirect(url_for('userevents', id = session['user_id']))
     return render_template('createEvents.html', title = 'Create An Event', form = form)
 
 
-def save_picture(form_picture):
-    random_hex= secrets.token_hex(8)
-    f_name,f_ext= os.path.splitext(form_picture.filename)
-    picture_fn= random_hex+ f_ext
-    picture_path= os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], picture_fn)
-    output_size=(650,760)
-    i=Image.open(form_picture)
-    i.thumbnail(output_size)
-    i.save(picture_path)
-    return picture_fn
+@app.route('/events/<id>', methods=['GET']) #only user can see 
+def userevents(id):
+    if 'user' in session:
+        user = User.query.filter_by(id = id).first()
+        userevent = Event.query.filter_by(creator = id).all()
+        return render_template('userevents.html', title="Your Events", userevent=userevent, user = user)
+    else:
+        return redirect(url_for('login'))
+
+
+# def save_picture(form_picture):
+#     random_hex= secrets.token_hex(8)
+#     f_name,f_ext= os.path.splitext(form_picture.filename)
+#     picture_fn= random_hex+ f_ext
+#     picture_path= os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], picture_fn)
+#     output_size=(650,760)
+#     i=Image.open(form_picture)
+#     i.thumbnail(output_size)
+#     i.save(picture_path)
+#     return picture_fn
 
 
 

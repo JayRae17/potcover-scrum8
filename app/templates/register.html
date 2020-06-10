@@ -4,7 +4,8 @@
     {% include "flash.html"%}
     {% from "_formhelpers.html" import render_field %}
 
-    <form class = "form" method ="post" action = '/register'>
+    <h3 class = "mb-3">{{title}}</h3>
+    <form class = "card w-25 px-5 py-3" method ="post" action = '/register'>
         {{form.hidden_tag()}}
         <dl> <!--description helper tab-->
             {{render_field(form.firstname)}}
@@ -14,7 +15,7 @@
             {{render_field(form.password)}}
             {{render_field(form.confirm)}}
         </dl>
-        <p><input type="submit", value="Register"></p>
+        <p><input class="btn btn-info" type="submit", value="Register"></p>
 
     </form>
 
