@@ -12,12 +12,13 @@ token_set = set()
 
 @app.route('/',methods=['GET'])
 def index():
-    return render_template("index.html", title="My Main Page")
+    return render_template("index.html", title="Main Page")
 
 
 @app.route('/events', methods=['GET']) #everyone can see
 def events():
     events = Event.query.all()
+    
 
     return render_template('events.html', title="Current Events", events=events)
 
@@ -40,7 +41,7 @@ def login(): #not connected to authlogin
             session['user'] = user.email
             session['user_id'] = user.id
             flash('Successfully Logged in', category='success')
-            return redirect(url_for('events'))
+            return redirect(url_for('userevents', id = session['user_id']))
 
     return render_template('login.html', title = 'Login', form = form)
 
@@ -237,14 +238,16 @@ def get_one_user(current_user,user_id):
     if not user:
         return jsonify({'Messsage':'User does not exist'})
 
-    user_data = {}
-    user_data["id"] = user.id
-    user_data["firstname"] = user.firstname
-    user_data["lastname"] = user.lastname
-    user_data["email"] = user.email
-    user_data["admin"] = user.admin
-
-    return jsonify({'user':user_data})
+    if current_user.id == user_id:
+        user_data = {}
+        user_data["id"] = user.id
+        user_data["firstname"] = user.firstname
+        user_data["lastname"] = user.lastname
+        user_data["email"] = user.email
+        user_data["admin"] = user.admin
+        return jsonify({'user':user_data})
+        
+    return jsonify({'Messsage':'You are unauthorized'})
 
 
 #delete a particular user
