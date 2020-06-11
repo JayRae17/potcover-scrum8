@@ -4,8 +4,9 @@
     <head>
         <title>{{title}}</title>
 
-  <link rel="stylesheet" href="app\static\css\app.css">
+ 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/app.css"/>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
@@ -20,7 +21,7 @@
                 <a class="navbar-brand mr-5" href="/">Events Management</a>
               </li>
               <li class="nav-item mr-5">
-                <a class="nav-link" href="/events">All Events</a>
+                <a class="nav-link" href="/eventslist">All Events</a>
               </li>
             {% if 'user' in session %}
                 <li class="nav-item mr-5">

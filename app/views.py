@@ -15,12 +15,11 @@ def index():
     return render_template("index.html", title="Main Page")
 
 
-@app.route('/events', methods=['GET']) #everyone can see
+@app.route('/eventslist', methods=['GET']) #everyone can see
 def events():
-    events = Event.query.all()
+    events = Event.query.filter_by(visibility=1).all()
     
-
-    return render_template('events.html', title="Current Events", events=events)
+    return render_template('events.html', title="All Events", events=events)
 
 
 @app.route('/login',methods=['GET','POST'])
@@ -208,8 +207,17 @@ def authorized_user(f):
 
 #============= Users ===================#
 
-# Retrieve all users
+@app.route('/user', methods=['POST'])
+def create_user():
+    data = request.get_json()
+    hashed_password = generate_password_hash(data['password'],method ='sha256')
 
+    user = User(firstname = data['firstname'], lastname = data['lastname'], username = data['username'], email = data['email'], password =hashed_password, admin = False)
+    db.session.add(user)
+    db.session.commit()
+    return jsonify({'Message':'The user was created'})
+
+# Retrieve all users
 @app.route('/user', methods=['GET'])
 @admin_required
 @token_required
@@ -228,8 +236,8 @@ def get_users(current_user):
         output.append(user_data) #dictionary within a list
     return jsonify({'users':output})
 
-# Retrieve a unique user details
 
+# Retrieve a unique user details
 @app.route('/user/<user_id>', methods=['GET'])
 @token_required
 def get_one_user(current_user,user_id):
@@ -238,7 +246,8 @@ def get_one_user(current_user,user_id):
     if not user:
         return jsonify({'Messsage':'User does not exist'})
 
-    if current_user.id == user_id:
+
+    if str(current_user.id) == user_id or current_user.admin:
         user_data = {}
         user_data["id"] = user.id
         user_data["firstname"] = user.firstname
@@ -312,6 +321,23 @@ def updateUser(current_user,user_id):
 
 
 #============ Events ####################
+@app.route('/events', methods=['POST'])
+@token_required
+def create_event(current_user):
+    data = request.form
+    flyer = request.files['flyer']
+
+    print('herrrrreeeeeee' + str(data))
+    filename = secure_filename(flyer.filename)
+    flyer.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+    date_created = datetime.datetime.now()
+
+    event = Event(name = data['name'], title = data['title'], description = data['description'], category = data['category'], start_dt = data['start_date'], end_dt = data['end_date'], cost = data['cost'], venue = data['venue'], flyer = filename, creator = current_user.id, date_created = date_created)
+    db.session.add(event)
+    db.session.commit()
+    return jsonify({'Message':'The event was created'})
+
 
 # Get all events for all users
 @app.route('/events', methods = ['GET'])
@@ -412,6 +438,24 @@ def updateEvent(current_user,event_id):
     
     db.session.commit()
     return jsonify({'Message':'This event with eventID : %s is now updated' %event.id})
+
+
+#delete a particular event
+@app.route('/events/<event_id>', methods=["DELETE"])
+@token_required
+def delete_event(current_user,event_id):
+
+    event = Event.query.filter_by(id = event_id).first()
+    current_user = User.query.filter_by(email = current_user.email).first()
+    if not event:
+        return jsonify({'Message': 'Event does not exist!'})
+    
+    if current_user.admin or str(current_user.id) == str(event.creator):
+        db.session.delete(event)
+        db.session.commit()
+        return jsonify({'Message': 'This event with ID: %s is now deleted' % event.id})
+
+    return jsonify({'Message':'Sorry, function not permitted!'})
 
 #============ Auth Login ===================#
 
