@@ -12,7 +12,7 @@ token_set = set()
 
 @app.route('/',methods=['GET'])
 def index():
-    return render_template("index.html", title="Main Page")
+    return render_template("index.html", title="Welcome")
 
 
 @app.route('/eventslist', methods=['GET']) #everyone can see
@@ -101,7 +101,7 @@ def createAnEvent():
 
 
 @app.route('/userevents/<id>', methods=['GET']) #only user can see 
-def userevents(id):
+def userevents(id):   
     if 'user' in session:
         user = User.query.filter_by(id = id).first()
         userevent = Event.query.filter_by(creator = id).all()
@@ -381,6 +381,9 @@ def getEvents():
 @app.route('/events/<event_id>', methods = ['GET'])
 def getEventDetails(event_id):
     event = Event.query.filter_by(id=event_id).first()
+    if not event:
+        return jsonify({'Message':'Event cannot be found'})
+
     event_data = {}
     event_data["id"] = event.id
     event_data["name"] = event.name
