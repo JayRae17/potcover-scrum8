@@ -100,7 +100,7 @@ def createAnEvent():
     return render_template('createEvents.html', title = 'Create An Event', form = form)
 
 
-@app.route('/events/<id>', methods=['GET']) #only user can see 
+@app.route('/userevents/<id>', methods=['GET']) #only user can see 
 def userevents(id):
     if 'user' in session:
         user = User.query.filter_by(id = id).first()
@@ -252,6 +252,7 @@ def get_one_user(current_user,user_id):
         user_data["id"] = user.id
         user_data["firstname"] = user.firstname
         user_data["lastname"] = user.lastname
+        user_data["username"] = user.username
         user_data["email"] = user.email
         user_data["admin"] = user.admin
         return jsonify({'user':user_data})
@@ -291,6 +292,22 @@ def admin_delete_user(current_user,user_id):
 
     return jsonify({'Message': 'This user with email: %s is now deleted' % user.email})
 
+
+@app.route('/user/promote/<user_id>', methods=['PUT'])
+@admin_required
+@token_required
+def promote_user(current_user,user_id):
+    user = User.query.filter_by(id = user_id).first()
+    if not user:
+        return jsonify({'Message': 'User does not exist!'})
+    
+    user.admin=True
+    db.session.commit()
+
+    return jsonify({'Message': 'This user with email: %s is now admin' % user.email})
+
+
+
 @app.route('/user/<user_id>', methods = ['PUT'])
 @token_required
 def updateUser(current_user,user_id):
@@ -317,7 +334,7 @@ def updateUser(current_user,user_id):
 
     db.session.commit()
 
-    return jsonify({'Message':'This user with emain : %s is now updated' %user.email})
+    return jsonify({'Message':'This user with email : %s is now updated' %user.email})
 
 
 #============ Events ####################
@@ -327,7 +344,6 @@ def create_event(current_user):
     data = request.form
     flyer = request.files['flyer']
 
-    print('herrrrreeeeeee' + str(data))
     filename = secure_filename(flyer.filename)
     flyer.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
@@ -376,6 +392,7 @@ def getEventDetails(event_id):
     event_data["cost"] = float(event.cost)
     event_data["venue"] = event.venue
     event_data["flyer"] = event.flyer
+    event_data["creator"] = event.creator
     event_data["visibility"] = event.visibility
     return jsonify({'Events':event_data})
 
@@ -383,7 +400,7 @@ def getEventDetails(event_id):
 @app.route('/events/visibility/<id>', methods=['PUT'])  
 @token_required
 @admin_required
-def update_event_visibility(id):
+def update_event_visibility(current_user,id):
     if not current_user.admin:  #could also be a decorater
         return jsonify({'Message':'Sorry, function not permitted!'})
 
@@ -470,7 +487,7 @@ def authlogin():
          return make_response('User verification failed2', 401,{'WWW-Authenticate': 'Basic realm = "Login Required!"'})
     
     if check_password_hash(user.password, auth.password):
-        token = jwt.encode({'email':user.email,'exp':datetime.datetime.utcnow()+datetime.timedelta(minutes = 30)}, app.config['SECRET_KEY'])
+        token = jwt.encode({'email':user.email,'exp':datetime.datetime.utcnow()+datetime.timedelta(minutes = 45)}, app.config['SECRET_KEY'])
         return jsonify({'token':token.decode('UTF-8')})
 
     return make_response('User verification failed3', 401,{'WWW-Authenticate': 'Basic realm = "Login Required!"'})

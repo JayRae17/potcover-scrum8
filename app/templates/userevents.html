@@ -16,7 +16,12 @@
                 <div class="col-4 card px-5 py-5" style="width: 18rem;">
                     <img class="card-img-top" src="{{ url_for('static', filename='uploads/' + e.flyer) }}" alt="Card image cap" width = "400" height = "400">
                     <div class="card-body">
-                        <b>{{e.title}} </b> 
+                        <b>{{e.title}} </b>
+                        {% if e.visibility: %} 
+                            - Public
+                        {% else %} 
+                            - Private
+                        {% endif %}
                         <div class = "row mt-3"> 
                             <div class = "col-5 text-left">
                                 Name: 
