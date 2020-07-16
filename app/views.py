@@ -399,6 +399,31 @@ def getEventDetails(event_id):
     event_data["visibility"] = event.visibility
     return jsonify({'Events':event_data})
 
+
+# Search for an event by name
+@app.route('/events/search/<name>', methods = ['GET'])
+def searchEvents():
+    data = request.get_json()
+    name = data['name']
+    events = Event.query.all()
+    event_list = []
+    for event in events:
+        if event.name == name:
+            event_data = {}
+            event_data["id"] = event.id
+            event_data["name"] = event.name
+            event_data["description"] = event.description
+            event_data["category"] = event.category
+            event_data["title"] = event.title
+            event_data["start_dt"] = event.start_dt
+            event_data["end_dt"] = event.end_dt
+            event_data["cost"] = float(event.cost)
+            event_data["venue"] = event.venue
+            event_data["flyer"] = event.flyer
+            event_data["visibility"] = event.visibility
+            event_list.append(event_data)
+    return jsonify({'Events':event_list})
+
 # Updates visibility of events
 @app.route('/events/visibility/<id>', methods=['PUT'])  
 @token_required
